@@ -1,0 +1,81 @@
+buildscript {
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+}
+
+apply plugin: 'groovy'
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'maven'
+
+repositories {
+	mavenCentral()
+	jcenter()
+	maven { url "http://oss.sonatype.org/content/repositories/releases/" }
+	maven {
+		url "http://nexus.opendaylight.org/content/repositories/opendaylight.snapshot"
+	}
+	maven {
+		url "http://nexus.opendaylight.org/content/repositories/opendaylight.release"
+	}
+}
+
+dependencies {
+  compile ("org.codehaus.groovy:groovy-all:2.3.9") {
+    exclude module: "commons-io"
+	}
+	compile "org.opendaylight.yangtools:yang-parser-impl:0.7.0-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-java-api-generator:0.7.0-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-generator-api:0.7.0-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-generator-impl:0.7.0-SNAPSHOT"
+	compile "org.opendaylight.controller:yang-jmx-generator:0.3.0-SNAPSHOT"
+	compile "commons-io:commons-io:2.4"
+	compile "org.xeustechnologies:jcl-core:2.6"
+	
+	testCompile("org.spockframework:spock-core:1.0-groovy-2.3") {
+		exclude group: "org.codehaus.groovy"
+	}
+}
+
+sourceCompatibility = 1.7
+
+group	= 'com.att.opnfv.yang'
+version	= '1.0.0-SNAPSHOT'
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+    }
+}
+
+sourceSets {
+	main {
+		compileClasspath = configurations.compile.minus files("$gradle.gradleHomeDir/lib/commons-io-1.4.jar")
+    }
+ 	integTest {
+		groovy.srcDir file("src/integTest/groovy")
+		resources.srcDir file("src/integTest/resources")
+		runtimeClasspath = output + compileClasspath - files("$gradle.gradleHomeDir/lib/commons-io-1.4.jar")
+	}
+}
+
+dependencies {
+	integTestCompile sourceSets.main.output
+	integTestCompile configurations.testCompile
+	integTestCompile sourceSets.test.output
+	integTestRuntime configurations.testRuntime
+	
+	testCompile( 'com.netflix.nebula:nebula-test:2.2.1' ) {
+		exclude module: 'groovy-all'
+	}
+}
+
+task integTest(type: Test) {
+	testClassesDir	= sourceSets.integTest.output.classesDir
+	classpath 		= sourceSets.integTest.runtimeClasspath
+	// This forces integration tests to always run if the task is run.
+	outputs.upToDateWhen { false }
+}
+
+check.dependsOn -= integTest

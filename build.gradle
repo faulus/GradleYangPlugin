@@ -3,11 +3,15 @@ buildscript {
 		jcenter()
 		mavenCentral()
 	}
+	dependencies {
+		classpath 'org.unbroken-dome.gradle-plugins:gradle-testsets-plugin:1.0.2'
+	}
 }
 
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven'
+apply plugin: 'org.unbroken-dome.test-sets'
 
 repositories {
 	mavenCentral()
@@ -49,33 +53,29 @@ tasks.withType(Test) {
     }
 }
 
+testSets {
+	integTest
+}
+
 sourceSets {
 	main {
 		compileClasspath = configurations.compile.minus files("$gradle.gradleHomeDir/lib/commons-io-1.4.jar")
     }
  	integTest {
-		groovy.srcDir file("src/integTest/groovy")
-		resources.srcDir file("src/integTest/resources")
 		runtimeClasspath = output + compileClasspath - files("$gradle.gradleHomeDir/lib/commons-io-1.4.jar")
 	}
 }
 
 dependencies {
-	integTestCompile sourceSets.main.output
-	integTestCompile configurations.testCompile
-	integTestCompile sourceSets.test.output
-	integTestRuntime configurations.testRuntime
-	
 	testCompile( 'com.netflix.nebula:nebula-test:2.2.1' ) {
 		exclude module: 'groovy-all'
 	}
 }
 
-task integTest(type: Test) {
-	testClassesDir	= sourceSets.integTest.output.classesDir
-	classpath 		= sourceSets.integTest.runtimeClasspath
+project.integTest {
 	// This forces integration tests to always run if the task is run.
 	outputs.upToDateWhen { false }
 }
 
+// Makes integration tests not run by default.
 check.dependsOn -= integTest

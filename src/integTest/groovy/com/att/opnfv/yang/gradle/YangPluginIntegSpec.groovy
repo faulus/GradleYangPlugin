@@ -25,7 +25,7 @@ class YangPluginIntegSpec extends IntegrationSpec {
 		ExecutionResult result = runTasksSuccessfully('build')
 
 		then:
-		result
+		!result.wasUpToDate("yangGenerate")
 	}
 	
 	def 'yangFilesRootDir does not exist'() {
@@ -98,7 +98,46 @@ class YangPluginIntegSpec extends IntegrationSpec {
 		result.standardOutput.contains("In setAdditionalConfig.")
 		result.standardOutput.contains("In generateSources.")
 	}
-	
+
+	def 'Rerun with no input changes does not run task'() {
+		when:
+		directory("src/main/yang")
+		File yangFile = createFile("src/main/yang/trivial.yang")
+		yangFile << '''
+			module trivial {
+				namespace "trivial";
+				prefix trivial;
+			}
+		'''.stripIndent()
+		
+		// Note that we use a hand-coded mock here. Typical mocking frameworks can't work here because
+		// the test is run in a remote process.
+		buildFile << applyPlugin(YangPlugin)
+		buildFile << """
+			yang {
+				yangFilesRootDir 'src/main/yang'
+				generator {
+					generatorClassName	= 'com.att.opnfv.yang.generator.MockCodeGenerator'
+					outputDir 			= 'build/gen'
+				}
+			}
+		""".stripIndent()
+
+		ExecutionResult result = runTasksSuccessfully('build')
+		println result
+		
+		then:
+		result.standardOutput.contains("In setAdditionalConfig.")
+		result.standardOutput.contains("In generateSources.")
+		
+		when:
+		// If the task is run again with no input changes, then the task will not run.
+		result	= runTasksSuccessfully('yangGenerate')
+		
+		then:
+		result.wasUpToDate("yangGenerate")
+	}
+
 	def 'process yang module with no types with CodeGeneratorImpl'() {
 		when:
 		directory("src/main/yang")
@@ -247,13 +286,6 @@ class YangPluginIntegSpec extends IntegrationSpec {
 		then:
 		result.standardOutput.contains("In setAdditionalConfig.")
 		result.standardOutput.contains("In generateSources.")
-		
-		when:
-		// If the task is run again with no input changes, then the task will not run.
-		result	= runTasksSuccessfully('yangGenerate')
-		
-		then:
-		result.wasUpToDate("yangGenerate")
 	}
 	
 	def 'rerun task when imported yang files change'() {

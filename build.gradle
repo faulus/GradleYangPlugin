@@ -26,14 +26,14 @@ repositories {
 }
 
 dependencies {
-  compile ("org.codehaus.groovy:groovy-all:2.3.9") {
+  compile ("org.codehaus.groovy:groovy-all:2.4.7") {
     exclude module: "commons-io"
 	}
-	compile "org.opendaylight.yangtools:yang-parser-impl:0.7.0-SNAPSHOT"
-	compile "org.opendaylight.yangtools:binding-java-api-generator:0.7.0-SNAPSHOT"
-	compile "org.opendaylight.yangtools:binding-generator-api:0.7.0-SNAPSHOT"
-	compile "org.opendaylight.yangtools:binding-generator-impl:0.7.0-SNAPSHOT"
-	compile "org.opendaylight.controller:yang-jmx-generator:0.3.0-SNAPSHOT"
+	compile "org.opendaylight.yangtools:yang-parser-impl:1.0.0-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-java-api-generator:0.7.5-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-generator-api:0.7.5-SNAPSHOT"
+	compile "org.opendaylight.yangtools:binding-generator-impl:0.7.5-SNAPSHOT"
+	compile "org.opendaylight.controller:yang-jmx-generator:0.5.0-SNAPSHOT"
 	compile "commons-io:commons-io:2.4"
 	compile "org.xeustechnologies:jcl-core:2.6"
 	
